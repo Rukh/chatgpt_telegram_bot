@@ -54,12 +54,12 @@ gcloud auth configure-docker gcr.io || error_exit "gcloud auth configure-docker 
 echo "Pushing Docker image..."
 docker-compose push || error_exit "docker-compose push failed"
 
-# Step 6: Deploy Docker image to Google Cloud Run
-echo "Deploying Docker image to Google Cloud Run..."
-gcloud run deploy $SERVICE_NAME \
-  --region $REGION \
-  --image $IMAGE_NAME:$TAG \
-  --max-instances=3 \
-  --allow-unauthenticated || error_exit "gcloud run deploy failed"
+# # Step 6: Deploy Docker image to Google Cloud Run
+# echo "Deploying Docker image to Google Cloud Run..."
+# gcloud run deploy $SERVICE_NAME \
+#   --region $REGION \
+#   --image $IMAGE_NAME:$TAG \
+#   --max-instances=3 \
+#   --allow-unauthenticated || error_exit "gcloud run deploy failed"
 
-echo "Deployment complete!"
+# echo "Deployment complete!"
