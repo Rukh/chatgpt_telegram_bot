@@ -46,21 +46,42 @@ fi
 echo "Building Docker image..."
 docker-compose build || error_exit "docker-compose build failed"
 
-# Step 4: Authenticate Docker to Google Container Registry
-echo "Authenticating Docker to Google Container Registry..."
-gcloud auth configure-docker gcr.io || error_exit "gcloud auth configure-docker failed"
+# Infinite loop to monitor and restart docker-compose
+while true; do
+    # Run docker-compose up --build in detached mode
+    docker-compose up --build -d
 
-# Step 5: Push Docker image to Google Container Registry
-echo "Pushing Docker image..."
-docker-compose push || error_exit "docker-compose push failed"
+    # Wait for a few seconds before checking the status
+    sleep 10
 
-# Step 6: Deploy Docker image to Google Cloud Run
-echo "Deploying Docker image to Google Cloud Run..."
-gcloud run deploy $SERVICE_NAME \
-  --region $REGION \
-  --image $IMAGE_NAME:$TAG \
-  --max-instances=3 \
-  --allow-unauthenticated \
-  --port 8080 || error_exit "gcloud run deploy failed"
+    # Check the status of all services
+    STATUS=$(docker-compose ps -q | xargs docker inspect -f '{{ .State.Running }}' | grep -c false)
 
-echo "Deployment complete!"
+    # If any of the services are not running, restart docker-compose
+    if [ $STATUS -ne 0 ]; then
+        echo "One or more containers have stopped. Restarting docker-compose..."
+        docker-compose down
+    fi
+
+    # Wait before checking the status again
+    sleep 30
+done
+
+# # Step 4: Authenticate Docker to Google Container Registry
+# echo "Authenticating Docker to Google Container Registry..."
+# gcloud auth configure-docker gcr.io || error_exit "gcloud auth configure-docker failed"
+
+# # Step 5: Push Docker image to Google Container Registry
+# echo "Pushing Docker image..."
+# docker-compose push || error_exit "docker-compose push failed"
+
+# # Step 6: Deploy Docker image to Google Cloud Run
+# echo "Deploying Docker image to Google Cloud Run..."
+# gcloud run deploy $SERVICE_NAME \
+#   --region $REGION \
+#   --image $IMAGE_NAME:$TAG \
+#   --max-instances=3 \
+#   --allow-unauthenticated \
+#   --port 8080 || error_exit "gcloud run deploy failed"
+
+# echo "Deployment complete!"
