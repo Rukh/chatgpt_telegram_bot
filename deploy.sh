@@ -4,7 +4,7 @@
 PROJECT_ID="sharp-oxide-430310-b7"
 REGION="europe-west10"
 SERVICE_NAME="chatgpt-telegram-bot"
-IMAGE_NAME="europe-west10-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$SERVICE_NAME"
+IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"
 TAG="latest"
 ENV_FILE="config/config.env"
 
@@ -41,7 +41,7 @@ docker buildx build --platform linux/amd64 -t $IMAGE_NAME:$TAG . || error_exit "
 
 # Step 4: Authenticate Docker to Google Container Registry
 echo "Authenticating Docker to Google Container Registry..."
-gcloud auth configure-docker europe-west10-docker.pkg.dev || error_exit "gcloud auth configure-docker failed"
+gcloud auth configure-docker gcr.io || error_exit "gcloud auth configure-docker failed"
 
 # Step 5: Push Docker image to Google Container Registry
 echo "Pushing Docker image..."
@@ -49,16 +49,11 @@ docker push $IMAGE_NAME:$TAG || error_exit "Docker push failed"
 
 # Step 6: Deploy Docker image to Google Cloud Run
 echo "Deploying Docker image to Google Cloud Run..."
-# gcloud run deploy $SERVICE_NAME \
-#   --image $IMAGE_NAME:$TAG \
-#   --platform managed \
-#   --region $REGION \
-#   --allow-unauthenticated \
-#   --memory 512Mi || error_exit "gcloud run deploy failed"
-
 gcloud run deploy $SERVICE_NAME \
+  --region $REGION \
   --image $IMAGE_NAME:$TAG \
   --max-instances=3 \
+  --allow-unauthenticated \
   --port 8080 || error_exit "gcloud run deploy failed"
 
 echo "Deployment complete!"
