@@ -49,16 +49,16 @@ docker push $IMAGE_NAME:$TAG || error_exit "Docker push failed"
 
 # Step 6: Deploy Docker image to Google Cloud Run
 echo "Deploying Docker image to Google Cloud Run..."
+# gcloud run deploy $SERVICE_NAME \
+#   --image $IMAGE_NAME:$TAG \
+#   --platform managed \
+#   --region $REGION \
+#   --allow-unauthenticated \
+#   --memory 512Mi || error_exit "gcloud run deploy failed"
+
 gcloud run deploy $SERVICE_NAME \
   --image $IMAGE_NAME:$TAG \
-  --platform managed \
-  --region $REGION \
-  --allow-unauthenticated \
-  --memory 512Mi || error_exit "gcloud run deploy failed"
-
-# gcloud run deploy \
-#   --image $IMAGE_NAME:$TAG \
-#   --max-instances=3 \
-#   --port 8080 || error_exit "gcloud run deploy failed"
+  --max-instances=3 \
+  --port 8080 || error_exit "gcloud run deploy failed"
 
 echo "Deployment complete!"
