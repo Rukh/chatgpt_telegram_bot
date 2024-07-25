@@ -37,7 +37,7 @@ fi
 
 # Step 3: Build Docker image and tag it for GCR
 echo "Building Docker image..."
-docker build -t $IMAGE_NAME:$TAG . || error_exit "Docker build failed"
+docker buildx build --platform linux/amd64 -t $IMAGE_NAME:$TAG . || error_exit "Docker build failed"
 
 # Step 4: Authenticate Docker to Google Container Registry
 echo "Authenticating Docker to Google Container Registry..."
@@ -55,5 +55,10 @@ gcloud run deploy $SERVICE_NAME \
   --region $REGION \
   --allow-unauthenticated \
   --memory 512Mi || error_exit "gcloud run deploy failed"
+
+# gcloud run deploy \
+#   --image $IMAGE_NAME:$TAG \
+#   --max-instances=3 \
+#   --port 8080 || error_exit "gcloud run deploy failed"
 
 echo "Deployment complete!"
