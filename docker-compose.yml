@@ -19,6 +19,8 @@ services:
     restart: always
     env_file:
       - ./config/config.env
+    environment:
+      - PORT=8080
     build:
       context: "."
       dockerfile: Dockerfile
