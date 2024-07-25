@@ -30,14 +30,21 @@ if ! command -v docker &> /dev/null; then
     exec -l $SHELL
 fi
 
+if ! command -v docker-compose &> /dev/null; then
+    echo "docker-compose not installed. Installing..."
+    sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
+    exec -l $SHELL
+fi
+
 # Step 2: Check for the presence of env file
 if [ ! -f "$ENV_FILE" ]; then
     error_exit "Env file not found: $ENV_FILE"
 fi
 
-# Step 3: Build Docker image and tag it for GCR
+# Step 3: Build Docker image using docker-compose
 echo "Building Docker image..."
-docker buildx build --platform linux/amd64 -t $IMAGE_NAME:$TAG . || error_exit "Docker build failed"
+docker-compose build || error_exit "docker-compose build failed"
 
 # Step 4: Authenticate Docker to Google Container Registry
 echo "Authenticating Docker to Google Container Registry..."
@@ -45,7 +52,7 @@ gcloud auth configure-docker gcr.io || error_exit "gcloud auth configure-docker 
 
 # Step 5: Push Docker image to Google Container Registry
 echo "Pushing Docker image..."
-docker push $IMAGE_NAME:$TAG || error_exit "Docker push failed"
+docker-compose push || error_exit "docker-compose push failed"
 
 # Step 6: Deploy Docker image to Google Cloud Run
 echo "Deploying Docker image to Google Cloud Run..."
